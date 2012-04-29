@@ -1,4 +1,10 @@
-Lots of functional libs all stemming from osteele's library here http://osteele.com/sources/javascript/functional/
+Lots of functional libs all stemming from
+
+Oliver Steele's functional library: http://osteele.com/sources/javascript/functional/
+
+Sjoerd Visscher's algebraic data type library: http://w3future.com/weblog/stories/2008/06/16/adtinjs.xml
+
+Bram Stein's matching library: http://www.bramstein.com/
 
 Probably needs better organization...
 
