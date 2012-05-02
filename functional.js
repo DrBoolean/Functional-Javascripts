@@ -31,7 +31,7 @@ memoize = function( fn ) {
     };  
 }
 
-typeof window=='undefined'&&(window={});var Functional=window.Functional||{};install=function(except){var source=Functional,target=window;for(var name in source)
+typeof window=='undefined'&&(window={});var Functional=window.Functional||{};Functional.install=function(except){var source=Functional,target=window;for(var name in source)
 name=='install'||name.charAt(0)=='_'||except&&name in except||{}[name]||(target[name]=source[name]);}
 compose=function(){var fns=map(Function.toFunction,arguments),arglen=fns.length;return function(){for(var i=arglen;--i>=0;)
 arguments=[fns[i].apply(this,arguments)];return arguments[0];}}
