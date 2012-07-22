@@ -14,6 +14,20 @@ defn = function(fn) {
 	return the_fun;
 }
 
+// set timeout works for titanium env, which i'm typically in.  Switch with different strategies.
+compose_p=function(){
+	var fns = map(Function.toFunction,arguments)
+	, arglen = fns.length;
+	
+	return function(x){
+		for(var i=arglen;--i>=0;) {
+			setTimeout(fns[i].p(x), 100);
+		}
+
+		return arguments[0];
+	}
+}
+
 memoize = function( fn ) {  
     return function () {  
         var args = Array.prototype.slice.call(arguments),  
