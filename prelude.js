@@ -114,10 +114,14 @@ uniq = function(xs) {
 }
 
 uniqBy = defn(function(fun, xs) {
-	var result = [];
-	for(var i=0;i<xs.length;i++ ) { if(compose(uniq, map(fun))(result) < 1) result.push(xs[i]); };
+	var result = [], len = xs.length, fun = fun.toFunction();
+	for(var i=0;i<len;i++ ) {
+		if(map(fun)(result).indexOf(fun(xs[i])) < 0) {
+			result.push(xs[i]);
+		}
+	};
 	return result;
-})
+});
 
 when = defn(function(pred, f) {
 	return function() {
@@ -131,9 +135,20 @@ ifelse = defn(function(pred, f, g) {
 	}
 });
 
-set = defn(function(attribute, x, val) {
+setVal = defn(function(attribute, x, val) {
 	x[attribute] = val;
 	return val;
+});
+
+setVals = defn(function(obj1, obj2) {
+  var target = {}
+  for(k in obj1) { target[k] = obj1[k].toFunction()(obj2); }
+	return target;
+});
+
+
+getVal = defn(function(attribute, x) {
+	return function(){ return x[attribute]; }
 });
 
 toAssociative = function(xs) {
@@ -167,16 +182,19 @@ isObj = function(obj) {
 	return (typeof obj == "object" && !isArray(obj));
 }
 
-merge = function(x,y) {
+merge = defn(function(x,y) {
+	var target = {};
+	for(property in x) target[property] = x[property];
+	
 	for(property in y) {
 		if(isObj(y[property])) {
-			merge(x[property], y[property]);
+			merge(target[property], y[property]);
 		} else {
-			x[property] = y[property];
+			if(target && y) target[property] = y[property];
 		}
 	}
-	return x;
-}
+	return target;
+});
 
 // altered from prototype
 sortBy = defn(function(fun, xs) {
@@ -215,8 +233,8 @@ average = function(xs) {
 	return parseFloat(div(sum(xs), xs.length));
 }
 
-filterByProperty = defn(function(prop, val) {
-	return compose(first, filter(function(p){return p[prop] == val}));
+filterByProperty = defn(function(prop, val, xs) {
+	return compose(first, filter(function(p){return p[prop] == val}))(xs);
 });
 
 argsToList = function(x){
