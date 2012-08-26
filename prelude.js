@@ -17,12 +17,21 @@ log = function(what) {
 	return what;
 }
 
+log2 = defn(function(one, two) {
+	log(one);
+	return log(two);
+})
+
 unshift = defn(function(xs, other) {
 	return other.concat(xs);
 })
 
 cons = defn(function(xs, other) {
 	return [xs].concat(other);
+});
+
+concat = defn(function(xs, other) {
+	return xs.concat(other);
 });
 
 repeat = defn(function(arg, n) {	
@@ -196,6 +205,27 @@ merge = defn(function(x,y) {
 	return target;
 });
 
+unionWith = defn(function(f, x, y) {
+  f = f.toFunction();
+	var target = {};
+	for(property in x){ if(x.hasOwnProperty(property)) target[property] = x[property]; }
+  
+	for(property in y) {
+	  if(y.hasOwnProperty(property)) {
+	    	if(isObj(y[property].valueOf())) {
+    			unionWith(f, target[property], y[property]);
+    		} else {
+    		  if(x[property]) {
+    		    target[property] = f(x[property], y[property]);
+    		  } else {
+    		    target[property] = y[property];
+    		  }
+    		}
+    	}
+	  }
+	return target;
+});
+
 // altered from prototype
 sortBy = defn(function(fun, xs) {
 	var _sortBy = function(iterator, xs, context) {
@@ -241,6 +271,10 @@ argsToList = function(x){
 	return Array.prototype.slice.call(x);
 }
 
+element = defn(function(arr, x) {
+	return arr.indexOf(x) >= 0
+});
+
 flatten = reduce(function(a,b){return a.concat(b);}, []);
 
 capitalize = function(xs) {
@@ -253,4 +287,12 @@ empty = function(xs) {
 
 headTail = defn(function(fun, xs) {
 	return fun.apply(fun, [first(xs), rest(xs)]);
+});
+
+andand = defn(function(x, y) {
+  return x.valueOf() && y.valueOf();
+});
+
+oror = defn(function(x, y) {
+  return x.valueOf() || y.valueOf();
 });
