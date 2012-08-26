@@ -1,5 +1,5 @@
-require('./support/functional');
-require('./support/prelude');
+require('./functional');
+require('./prelude');
 
 // 1. val && valueOf is weird?
 // 2. creating own types w/o newtype?
