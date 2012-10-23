@@ -1,20 +1,42 @@
-defn = function(fn) {
-	if(typeof fn != "function") return Match.apply(this, arguments);
-	var arg_length = fn.length;
-	var the_fun = function(){
-		var args = Array.prototype.slice.apply(arguments);
-		return (args.length < arg_length) ? fn.partial.apply(fn, args) : fn.apply(fn, args);
-	}
-	the_fun.arity = arg_length;
-	the_fun.curried = true;
-	the_fun.flip = function() {
-		fn = fn.flip();
-		return fn;
-	}
-	return the_fun;
-}
+// curry/auto is from wu.js
+(function() {
+  var toArray = function(x) {
+    return Array.prototype.slice.call(x);
+  }
+  
+  var curry = function (fn /* variadic number of args */) {
+         var args = Array.prototype.slice.call(arguments, 1);
+         var f = function () {
+             return fn.apply(this, args.concat(toArray(arguments)));
+         };
+         return f;
+     };
 
-// set timeout works for titanium env, which i'm typically in.  Switch with different strategies.
+  var autoCurry = function (fn, numArgs) {
+         numArgs = numArgs || fn.length;
+         var f = function () {
+             if (arguments.length < numArgs) {
+                 return numArgs - arguments.length > 0 ?
+                     autoCurry(curry.apply(this, [fn].concat(toArray(arguments))),
+                                  numArgs - arguments.length) :
+                     curry.apply(this, [fn].concat(toArray(arguments)));
+             }
+             else {
+                 return fn.apply(this, arguments);
+             }
+         };
+         f.toString = function(){ return fn.toString(); };
+         f.curried = true;
+         return f;
+     };
+     
+     Function.prototype.autoCurry = function(n) {
+       return autoCurry(this, n);
+     }
+})();
+
+
+// set timeout works for titanium env, which i'm typically in.  Switch with different strategies if needed.
 compose_p=function(){
 	var fns = map(Function.toFunction,arguments)
 	, arglen = fns.length;
@@ -52,12 +74,12 @@ arguments=[fns[i].apply(this,arguments)];return arguments[0];}}
 composel=function(){ var args=Array.slice(arguments,1).reverse(); compose.apply(args); }
 sequence=function(){var fns=map(Function.toFunction,arguments),arglen=fns.length;return function(){for(var i=0;i<arglen;i++)
 arguments=[fns[i].apply(this,arguments)];return arguments[0];}}
-map=defn(function(fn,sequence){fn=Function.toFunction(fn);var len=sequence.length,result=new Array(len);for(var i=0;i<len;i++)
-result[i]=fn.apply(null,[sequence[i],i]);return result;})
-reduce=defn(function(fn,init,sequence){fn=Function.toFunction(fn);var len=sequence.length,result=init;for(var i=0;i<len;i++)
-result=fn.apply(null,[result,sequence[i]]);return result;})
-select=defn(function(fn,sequence){fn=Function.toFunction(fn);var len=sequence.length,result=[];for(var i=0;i<len;i++){var x=sequence[i];fn.apply(null,[x,i])&&result.push(x);}
-return result;})
+map=function(fn,sequence){fn=Function.toFunction(fn);var len=sequence.length,result=new Array(len);for(var i=0;i<len;i++)
+result[i]=fn.apply(null,[sequence[i],i]);return result;}.autoCurry();
+reduce=function(fn,init,sequence){fn=Function.toFunction(fn);var len=sequence.length,result=init;for(var i=0;i<len;i++)
+result=fn.apply(null,[result,sequence[i]]);return result;}.autoCurry();
+select=function(fn,sequence){fn=Function.toFunction(fn);var len=sequence.length,result=[];for(var i=0;i<len;i++){var x=sequence[i];fn.apply(null,[x,i])&&result.push(x);}
+return result;}.autoCurry();
 guard=function(guard,otherwise,fn){fn=Function.toFunction(fn);guard=Function.toFunction(guard||I);otherwise=Function.toFunction(otherwise||I);return function(){return(guard.apply(this,arguments)?fn:otherwise).apply(this,arguments);}}
 flip = function(f){return f.flip(); }
 filter=select;foldl=reduce;foldr=function(fn,init,sequence){fn=Function.toFunction(fn);var len=sequence.length,result=init;for(var i=len;--i>=0;)
@@ -68,12 +90,12 @@ break;return value;}}
 or=function(){var args=map(Function.toFunction,arguments),arglen=args.length;return function(){var value=false;for(var i=0;i<arglen;i++)
 if((value=args[i].apply(this,arguments)))
 break;return value;}}
-some=defn(function(fn,sequence){fn=Function.toFunction(fn);var len=sequence.length,value=false;for(var i=0;i<len;i++)
+some=function(fn,sequence){fn=Function.toFunction(fn);var len=sequence.length,value=false;for(var i=0;i<len;i++)
 if((value=fn.call(null,sequence[i])))
-break;return value;})
-every=defn(function(fn,sequence){fn=Function.toFunction(fn);var len=sequence.length,value=true;for(var i=0;i<len;i++)
+break;return value;}.autoCurry();
+every=function(fn,sequence){fn=Function.toFunction(fn);var len=sequence.length,value=true;for(var i=0;i<len;i++)
 if(!(value=fn.call(null,sequence[i])))
-break;return value;})
+break;return value;}.autoCurry();
 not=function(fn){fn=Function.toFunction(fn);return function(){return!fn.apply(null,arguments);}}
 equal=function(){var arglen=arguments.length,args=map(Function.toFunction,arguments);if(!arglen)return K(true);return function(){var value=args[0].apply(this,arguments);for(var i=1;i<arglen;i++)
 if(value!=args[i].apply(this,args))
@@ -81,8 +103,8 @@ return false;return true;}}
 lambda=function(object){return object.toFunction();}
 invoke=function(methodName){var args=Array.slice(arguments,1);return function(object){return object[methodName].apply(object,Array.slice(arguments,1).concat(args));}}
 pluck=function(name){return function(object){return object[name];}}
-until=defn(function(pred,fn){fn=Function.toFunction(fn);pred=Function.toFunction(pred);return function(value){while(!pred.call(null,value))
-value=fn.call(null,value);return value;}})
+until=function(pred,fn){fn=Function.toFunction(fn);pred=Function.toFunction(pred);return function(value){while(!pred.call(null,value))
+value=fn.call(null,value);return value;}}.autoCurry();
 zip=function(){var n=Math.min.apply(null,map('.length',arguments));var results=new Array(n);for(var i=0;i<n;i++){var key=String(i);results[key]=map(pluck(key),arguments);};return results;}
 _startRecordingMethodChanges=function(object){var initialMethods={};for(var name in object)
 initialMethods[name]=object[name];return{getChangedMethods:function(){var changedMethods={};for(var name in object)
