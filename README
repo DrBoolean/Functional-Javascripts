@@ -1,3 +1,12 @@
+This is old. Instead checkout:
+https://github.com/fantasyland/fantasy-land
+https://github.com/folktale
+https://github.com/DrBoolean/lenses
+https://github.com/DrBoolean/pointfree-fantasy
+https://github.com/loop-recur/lambdajs
+
+
+
 Lots of functional libs all modified to work with web/titanium/node environments.
 
 Oliver Steele's functional library: http://osteele.com/sources/javascript/functional/
